@@ -914,25 +914,12 @@ class PremiumMultiProjectPermission(BasePermission):
                 return False
 
         current_non_demo_project_count = organization.teams.exclude(is_demo=True).distinct("project_id").count()
-        projects_feature = organization.get_available_feature(AvailableFeature.ORGANIZATIONS_PROJECTS)
 
-        if projects_feature:
-            allowed_project_count = projects_feature.get("limit")
-            # If allowed_project_count is None then the user is allowed unlimited projects
-            if allowed_project_count is None:
-                # We have a hard limit of MAX_ALLOWED_PROJECTS_PER_ORG projects per organization
-                # We don't want to block updates if a customer is already over the max allowed
-                if current_non_demo_project_count >= MAX_ALLOWED_PROJECTS_PER_ORG and view.action == "create":
-                    self.message = f"You have reached the maximum limit of {MAX_ALLOWED_PROJECTS_PER_ORG} projects per organization. Contact support if you'd like access to more projects."
-                    return False
-                return True
-            # Check current limit against allowed limit
-            if current_non_demo_project_count >= allowed_project_count:
-                return False
-        else:
-            # If the org doesn't have the feature, they can only have one non-demo project
-            if current_non_demo_project_count >= 1:
-                return False
+        # Self-hosted modification: Only enforce the hard limit of MAX_ALLOWED_PROJECTS_PER_ORG
+        # Remove license-based restrictions to allow unlimited projects on self-hosted instances
+        if current_non_demo_project_count >= MAX_ALLOWED_PROJECTS_PER_ORG and view.action == "create":
+            self.message = f"You have reached the maximum limit of {MAX_ALLOWED_PROJECTS_PER_ORG} projects per organization. Contact support if you'd like access to more projects."
+            return False
 
-        # in any other case, we're good to go
+        # All other cases are allowed
         return True
