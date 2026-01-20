@@ -314,6 +314,11 @@ export const userLogic = kea<userLogicType>([
                                 : true
                             : false
                     }
+                    // Self-hosted modification: Allow ORGANIZATIONS_PROJECTS even when available_product_features is empty
+                    // This enables unlimited projects on self-hosted instances without requiring a license
+                    if (feature === AvailableFeature.ORGANIZATIONS_PROJECTS) {
+                        return true
+                    }
                     return false
                 }
             },

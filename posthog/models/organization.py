@@ -296,6 +296,16 @@ class Organization(ModelActivityMixin, UUIDTModel):
                 self.available_product_features = [
                     {"key": feature, "name": " ".join(feature.split(" ")).capitalize()} for feature in features
                 ]
+            else:
+                # Self-hosted modification: Enable unlimited projects for self-hosted instances without license
+                # This allows self-hosted users to create multiple projects without requiring a paid license
+                self.available_product_features = [
+                    {
+                        "key": AvailableFeature.ORGANIZATIONS_PROJECTS,
+                        "name": "Organizations Projects",
+                        "limit": None,  # None = unlimited
+                    }
+                ]
 
         return self.available_product_features
 
